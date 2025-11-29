@@ -84,6 +84,10 @@ def calculate_daily_returns(
     
     Raises:
         ValueError: If price column not found or invalid method
+    
+    Example:
+        >>> returns = calculate_daily_returns(stock_df, method='simple')
+        >>> print(f"Average daily return: {returns.mean():.4f}")
     """
     if df.empty:
         return pd.Series(dtype=float)
@@ -212,6 +216,10 @@ def calculate_cumulative_returns(
     
     Returns:
         Series with cumulative returns
+    
+    Example:
+        >>> cum_returns = calculate_cumulative_returns(stock_df, method='compound')
+        >>> print(f"Total return: {cum_returns.iloc[-1]:.2%}")
     """
     if df.empty:
         return pd.Series(dtype=float)
@@ -344,6 +352,10 @@ def calculate_volatility(
     
     Returns:
         Volatility as decimal (e.g., 0.18 = 18% volatility)
+    
+    Example:
+        >>> vol = calculate_volatility(stock_df, annualize=True)
+        >>> print(f"Annual volatility: {vol:.2%}")
     """
     if df.empty:
         return 0.0
@@ -510,6 +522,10 @@ def calculate_drawdown(
     
     Returns:
         Series with drawdown values (negative percentages)
+    
+    Example:
+        >>> dd = calculate_drawdown(stock_df)
+        >>> print(f"Current drawdown: {dd.iloc[-1]:.2%}")
     """
     if df.empty:
         return pd.Series(dtype=float)
@@ -695,6 +711,10 @@ def calculate_sma(
     
     Returns:
         Series with SMA values
+    
+    Example:
+        >>> sma_50 = calculate_sma(stock_df, window=50)
+        >>> print(f"50-day SMA: ${sma_50.iloc[-1]:.2f}")
     """
     return calculate_moving_average(df, window, price_column, ma_type='simple')
 
@@ -765,6 +785,11 @@ def detect_golden_cross(
     
     Returns:
         Date of most recent golden cross, or None if not found
+    
+    Example:
+        >>> golden = detect_golden_cross(stock_df)
+        >>> if golden:
+        >>>     print(f"Golden cross detected on {golden.strftime('%Y-%m-%d')}")
     """
     if df.empty or len(df) < long_window:
         return None
@@ -889,6 +914,12 @@ def get_comprehensive_analysis(
     
     Returns:
         Dictionary with comprehensive analysis
+    
+    Example:
+        >>> analysis = get_comprehensive_analysis(stock_df)
+        >>> print(f"Total Return: {analysis['returns']['total']:.2%}")
+        >>> print(f"Sharpe Ratio: {analysis['ratios']['sharpe']:.2f}")
+        >>> print(f"Max Drawdown: {analysis['risk']['max_drawdown']:.2%}")
     """
     if df.empty:
         return {'error': 'Empty DataFrame'}
