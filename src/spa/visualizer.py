@@ -308,7 +308,70 @@ def create_returns_chart(
         >>> fig = create_returns_chart(stock_df, ticker="AAPL")
         >>> fig.show()
     """
-    raise NotImplementedError("Returns chart implementation pending")
+    # Validate input
+    _validate_dataframe(df, ['Close'])
+    
+    # Calculate returns
+    daily_returns = calculate_daily_returns(df, method='simple')
+    cumulative_returns = calculate_cumulative_returns(df, method='compound')
+    
+    # Create subplots
+    fig = make_subplots(
+        rows=2, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.08,
+        row_heights=[0.5, 0.5],
+        subplot_titles=(f'{ticker} Daily Returns', f'{ticker} Cumulative Returns')
+    )
+    
+    # Add daily returns as bar chart
+    colors = [COLORS['positive'] if r >= 0 else COLORS['negative'] 
+              for r in daily_returns]
+    
+    daily_bars = go.Bar(
+        x=daily_returns.index,
+        y=daily_returns * 100,  # Convert to percentage
+        name='Daily Returns',
+        marker_color=colors,
+        showlegend=False
+    )
+    fig.add_trace(daily_bars, row=1, col=1)
+    
+    # Add cumulative returns as line chart
+    cumulative_line = go.Scatter(
+        x=cumulative_returns.index,
+        y=cumulative_returns * 100,  # Convert to percentage
+        name='Cumulative Returns',
+        mode='lines',
+        line=dict(color=COLORS['primary'], width=2),
+        fill='tozeroy',
+        fillcolor='rgba(31, 119, 180, 0.1)',
+        showlegend=False
+    )
+    fig.add_trace(cumulative_line, row=2, col=1)
+    
+    # Add zero line to daily returns
+    fig.add_hline(y=0, line_dash="dash", line_color="gray", 
+                  opacity=0.5, row=1, col=1)
+    
+    # Update axes
+    fig.update_xaxes(title_text="Date", row=2, col=1)
+    fig.update_yaxes(title_text="Daily Return (%)", row=1, col=1)
+    fig.update_yaxes(title_text="Cumulative Return (%)", row=2, col=1)
+    
+    # Update layout
+    layout = create_base_layout(
+        title=f'{ticker} Returns Analysis',
+        height=700
+    )
+    fig.update_layout(**layout)
+    
+    # Add range selector
+    fig.update_xaxes(rangeselector=_add_range_selector())
+    
+    logger.info(f"Created returns chart for {ticker}")
+    
+    return fig
 
 
 def create_volatility_chart(
