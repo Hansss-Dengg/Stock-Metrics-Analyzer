@@ -193,7 +193,6 @@ def save_chart(fig: go.Figure, filepath: str, **kwargs) -> None:
         raise
 
 
-# Placeholder functions for future implementation
 def create_price_chart(
     df: pd.DataFrame,
     ticker: str = "Stock",
@@ -214,7 +213,81 @@ def create_price_chart(
         >>> fig = create_price_chart(stock_df, ticker="AAPL")
         >>> fig.show()
     """
-    raise NotImplementedError("Price chart will be implemented in commit 26")
+    # Validate input
+    required_cols = ['Open', 'High', 'Low', 'Close']
+    _validate_dataframe(df, required_cols)
+    
+    # Create subplots
+    if show_volume and 'Volume' in df.columns:
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.03,
+            row_heights=[0.7, 0.3],
+            subplot_titles=(f'{ticker} Price History', 'Volume')
+        )
+    else:
+        fig = go.Figure()
+    
+    # Add candlestick chart
+    candlestick = go.Candlestick(
+        x=df.index,
+        open=df['Open'],
+        high=df['High'],
+        low=df['Low'],
+        close=df['Close'],
+        name='OHLC',
+        increasing_line_color=COLORS['positive'],
+        decreasing_line_color=COLORS['negative']
+    )
+    
+    if show_volume and 'Volume' in df.columns:
+        fig.add_trace(candlestick, row=1, col=1)
+        
+        # Add volume bars
+        colors = [COLORS['positive'] if close >= open else COLORS['negative'] 
+                  for close, open in zip(df['Close'], df['Open'])]
+        
+        volume_bars = go.Bar(
+            x=df.index,
+            y=df['Volume'],
+            name='Volume',
+            marker_color=colors,
+            showlegend=False
+        )
+        fig.add_trace(volume_bars, row=2, col=1)
+        
+        # Update layout for subplots
+        fig.update_xaxes(title_text="Date", row=2, col=1)
+        fig.update_yaxes(title_text="Price ($)", row=1, col=1)
+        fig.update_yaxes(title_text="Volume", row=2, col=1)
+        
+        # Format volume axis
+        fig.update_yaxes(tickformat='.2s', row=2, col=1)
+    else:
+        fig.add_trace(candlestick)
+        fig.update_xaxes(title_text="Date")
+        fig.update_yaxes(title_text="Price ($)")
+    
+    # Update layout
+    layout = create_base_layout(
+        title=f'{ticker} Stock Price',
+        xaxis_title="Date",
+        yaxis_title="Price ($)",
+        height=700 if show_volume else 600
+    )
+    
+    fig.update_layout(**layout)
+    
+    # Add range selector
+    fig.update_xaxes(rangeselector=_add_range_selector())
+    
+    # Remove rangeslider for cleaner look
+    fig.update_xaxes(rangeslider_visible=False)
+    
+    logger.info(f"Created price chart for {ticker}")
+    
+    return fig
 
 
 def create_returns_chart(
@@ -235,7 +308,7 @@ def create_returns_chart(
         >>> fig = create_returns_chart(stock_df, ticker="AAPL")
         >>> fig.show()
     """
-    raise NotImplementedError("Returns chart will be implemented in commit 27")
+    raise NotImplementedError("Returns chart implementation pending")
 
 
 def create_volatility_chart(
@@ -256,7 +329,7 @@ def create_volatility_chart(
         >>> fig = create_volatility_chart(stock_df, ticker="AAPL")
         >>> fig.show()
     """
-    raise NotImplementedError("Volatility chart will be implemented in commit 28")
+    raise NotImplementedError("Volatility chart implementation pending")
 
 
 def create_drawdown_chart(
@@ -277,7 +350,7 @@ def create_drawdown_chart(
         >>> fig = create_drawdown_chart(stock_df, ticker="AAPL")
         >>> fig.show()
     """
-    raise NotImplementedError("Drawdown chart will be implemented in commit 29")
+    raise NotImplementedError("Drawdown chart implementation pending")
 
 
 def create_ma_overlay_chart(
@@ -300,7 +373,7 @@ def create_ma_overlay_chart(
         >>> fig = create_ma_overlay_chart(stock_df, ticker="AAPL", windows=[50, 200])
         >>> fig.show()
     """
-    raise NotImplementedError("MA overlay chart will be implemented in commit 30")
+    raise NotImplementedError("MA overlay chart implementation pending")
 
 
 def create_comparison_chart(
@@ -322,4 +395,4 @@ def create_comparison_chart(
         >>> fig = create_comparison_chart(data, metric="returns")
         >>> fig.show()
     """
-    raise NotImplementedError("Comparison chart will be implemented in commit 31")
+    raise NotImplementedError("Comparison chart implementation pending")
