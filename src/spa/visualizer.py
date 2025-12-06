@@ -660,4 +660,99 @@ def create_comparison_chart(
         >>> fig = create_comparison_chart(data, metric="returns")
         >>> fig.show()
     """
-    raise NotImplementedError("Comparison chart implementation pending")
+    if not data_dict:
+        raise ValueError("data_dict cannot be empty")
+    
+    # Validate metric
+    valid_metrics = ['price', 'returns', 'volatility']
+    if metric not in valid_metrics:
+        raise ValueError(f"Invalid metric: {metric}. Must be one of {valid_metrics}")
+    
+    # Create figure
+    fig = go.Figure()
+    
+    # Color palette for multiple stocks
+    colors = [
+        COLORS['primary'], COLORS['secondary'], COLORS['positive'],
+        COLORS['ma_short'], COLORS['ma_long'], '#17becf', '#bcbd22'
+    ]
+    
+    if metric == 'price':
+        # Normalize prices to start at 100 for fair comparison
+        for idx, (ticker, df) in enumerate(data_dict.items()):
+            if 'Close' not in df.columns:
+                continue
+            
+            normalized = (df['Close'] / df['Close'].iloc[0]) * 100
+            
+            trace = go.Scatter(
+                x=df.index,
+                y=normalized,
+                name=ticker,
+                mode='lines',
+                line=dict(color=colors[idx % len(colors)], width=2)
+            )
+            fig.add_trace(trace)
+        
+        title = "Stock Price Comparison (Normalized to 100)"
+        yaxis_title = "Normalized Price"
+    
+    elif metric == 'returns':
+        # Compare cumulative returns
+        for idx, (ticker, df) in enumerate(data_dict.items()):
+            if 'Close' not in df.columns:
+                continue
+            
+            cum_returns = calculate_cumulative_returns(df, method='compound')
+            
+            trace = go.Scatter(
+                x=cum_returns.index,
+                y=cum_returns * 100,
+                name=ticker,
+                mode='lines',
+                line=dict(color=colors[idx % len(colors)], width=2)
+            )
+            fig.add_trace(trace)
+        
+        # Add zero line
+        fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+        
+        title = "Cumulative Returns Comparison"
+        yaxis_title = "Cumulative Return (%)"
+    
+    elif metric == 'volatility':
+        # Compare rolling volatility
+        window = 30
+        for idx, (ticker, df) in enumerate(data_dict.items()):
+            if 'Close' not in df.columns:
+                continue
+            
+            rolling_vol = calculate_rolling_volatility(df, window=window, annualize=True)
+            
+            trace = go.Scatter(
+                x=rolling_vol.index,
+                y=rolling_vol * 100,
+                name=ticker,
+                mode='lines',
+                line=dict(color=colors[idx % len(colors)], width=2)
+            )
+            fig.add_trace(trace)
+        
+        title = f"Rolling Volatility Comparison ({window}-Day)"
+        yaxis_title = "Volatility (%)"
+    
+    # Update layout
+    layout = create_base_layout(
+        title=title,
+        xaxis_title="Date",
+        yaxis_title=yaxis_title,
+        height=600
+    )
+    fig.update_layout(**layout)
+    
+    # Add range selector
+    fig.update_xaxes(rangeselector=_add_range_selector())
+    
+    logger.info(f"Created comparison chart for {len(data_dict)} stocks")
+    
+    return fig
