@@ -445,6 +445,76 @@ def display_overview_page():
         st.metric("Calmar Ratio", f"{analysis['ratios']['calmar_ratio']:.2f}")
         st.metric("Downside Vol", f"{analysis['volatility']['downside_volatility']*100:.2f}%")
     
+    # Export options
+    st.markdown("---")
+    st.subheader("📥 Export Data")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        # Export stock data to CSV
+        csv_data = stock_data.to_csv()
+        st.download_button(
+            label="📊 Download Price Data (CSV)",
+            data=csv_data,
+            file_name=f"{ticker}_price_data.csv",
+            mime="text/csv",
+            help="Download raw OHLCV data"
+        )
+    
+    with col2:
+        # Export analysis results to JSON
+        import json
+        analysis_json = json.dumps(analysis, indent=2, default=str)
+        st.download_button(
+            label="📈 Download Analysis (JSON)",
+            data=analysis_json,
+            file_name=f"{ticker}_analysis.json",
+            mime="application/json",
+            help="Download calculated metrics and statistics"
+        )
+    
+    with col3:
+        # Export summary report
+        summary_report = f"""Stock Performance Report: {ticker}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+Company: {stock_info.get('longName', ticker)}
+Period: {stock_data.index[0].strftime('%Y-%m-%d')} to {stock_data.index[-1].strftime('%Y-%m-%d')}
+Trading Days: {len(stock_data)}
+
+PRICE METRICS
+Current Price: ${stock_data['Close'].iloc[-1]:.2f}
+Period High: ${stock_data['High'].max():.2f}
+Period Low: ${stock_data['Low'].min():.2f}
+Average Price: ${stock_data['Close'].mean():.2f}
+
+RETURNS
+Total Return: {analysis['returns']['total_return']*100:.2f}%
+Annualized Return: {analysis['returns']['annualized_return']*100:.2f}%
+Best Day: {analysis['returns']['best_day']*100:.2f}%
+Worst Day: {analysis['returns']['worst_day']*100:.2f}%
+Positive Days: {analysis['returns']['positive_days']}
+
+RISK METRICS
+Annualized Volatility: {analysis['volatility']['annualized_volatility']*100:.2f}%
+Downside Volatility: {analysis['volatility']['downside_volatility']*100:.2f}%
+Maximum Drawdown: {analysis['drawdown']['max_drawdown']*100:.2f}%
+Current Drawdown: {analysis['drawdown']['current_drawdown']*100:.2f}%
+
+PERFORMANCE RATIOS
+Sharpe Ratio: {analysis['ratios']['sharpe_ratio']:.2f}
+Sortino Ratio: {analysis['ratios']['sortino_ratio']:.2f}
+Calmar Ratio: {analysis['ratios']['calmar_ratio']:.2f}
+"""
+        st.download_button(
+            label="📄 Download Report (TXT)",
+            data=summary_report,
+            file_name=f"{ticker}_report.txt",
+            mime="text/plain",
+            help="Download formatted text report"
+        )
+    
     # Quick price chart
     st.markdown("---")
     st.subheader("Price History")
@@ -452,6 +522,18 @@ def display_overview_page():
     data_dict['index'] = stock_data.index.astype(str).tolist()
     fig = create_cached_price_chart(ticker, data_dict, show_volume=True)
     st.plotly_chart(fig, use_container_width=True)
+    
+    # Export chart
+    col1, col2, col3 = st.columns([1, 1, 2])
+    with col1:
+        chart_html = fig.to_html()
+        st.download_button(
+            label="💾 Download Chart (HTML)",
+            data=chart_html,
+            file_name=f"{ticker}_price_chart.html",
+            mime="text/html",
+            help="Interactive HTML chart"
+        )
 
 
 def display_price_analysis_page(show_volume: bool):
@@ -471,6 +553,15 @@ def display_price_analysis_page(show_volume: bool):
     data_dict['index'] = stock_data.index.astype(str).tolist()
     fig = create_cached_price_chart(ticker, data_dict, show_volume=show_volume)
     st.plotly_chart(fig, use_container_width=True)
+    
+    # Export chart
+    chart_html = fig.to_html()
+    st.download_button(
+        label="💾 Download Chart (HTML)",
+        data=chart_html,
+        file_name=f"{ticker}_price_chart.html",
+        mime="text/html"
+    )
     
     # Price statistics
     st.markdown("---")
@@ -514,6 +605,15 @@ def display_returns_analysis_page():
     fig = create_cached_returns_chart(ticker, data_dict)
     st.plotly_chart(fig, use_container_width=True)
     
+    # Export chart
+    chart_html = fig.to_html()
+    st.download_button(
+        label="💾 Download Chart (HTML)",
+        data=chart_html,
+        file_name=f"{ticker}_returns_chart.html",
+        mime="text/html"
+    )
+    
     # Returns statistics3
     st.markdown("---")
     st.subheader("Returns Statistics")
@@ -552,6 +652,15 @@ def display_volatility_analysis_page():
     fig = create_cached_volatility_chart(ticker, data_dict, window=30)
     st.plotly_chart(fig, use_container_width=True)
     
+    # Export chart
+    chart_html = fig.to_html()
+    st.download_button(
+        label="💾 Download Chart (HTML)",
+        data=chart_html,
+        file_name=f"{ticker}_volatility_chart.html",
+        mime="text/html"
+    )
+    
     # Volatility statistics
     st.markdown("---")
     st.subheader("Volatility Statistics")
@@ -586,6 +695,15 @@ def display_drawdown_analysis_page():
     data_dict['index'] = stock_data.index.astype(str).tolist()
     fig = create_cached_drawdown_chart(ticker, data_dict)
     st.plotly_chart(fig, use_container_width=True)
+    
+    # Export chart
+    chart_html = fig.to_html()
+    st.download_button(
+        label="💾 Download Chart (HTML)",
+        data=chart_html,
+        file_name=f"{ticker}_drawdown_chart.html",
+        mime="text/html"
+    )
     
     # Drawdown statistics
     st.markdown("---")
@@ -624,6 +742,15 @@ def display_technical_analysis_page(ma_windows: list):
     data_dict['index'] = stock_data.index.astype(str).tolist()
     fig = create_cached_ma_chart(ticker, data_dict, windows=ma_windows)
     st.plotly_chart(fig, use_container_width=True)
+    
+    # Export chart
+    chart_html = fig.to_html()
+    st.download_button(
+        label="💾 Download Chart (HTML)",
+        data=chart_html,
+        file_name=f"{ticker}_technical_analysis.html",
+        mime="text/html"
+    )
 
 
 def display_comparison_page():
@@ -712,6 +839,33 @@ def display_comparison_page():
                 
                 fig = create_cached_comparison_chart(data_dicts, metric=metric)
                 st.plotly_chart(fig, use_container_width=True)
+                
+                # Export options
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    # Export chart
+                    chart_html = fig.to_html()
+                    st.download_button(
+                        label="💾 Download Chart (HTML)",
+                        data=chart_html,
+                        file_name=f"comparison_{metric}_{'_'.join(sorted(data_dict.keys()))}.html",
+                        mime="text/html"
+                    )
+                
+                with col2:
+                    # Export combined data
+                    combined_data = pd.concat(
+                        {ticker: df['Close'] for ticker, df in data_dict.items()},
+                        axis=1
+                    )
+                    csv_data = combined_data.to_csv()
+                    st.download_button(
+                        label="📊 Download Data (CSV)",
+                        data=csv_data,
+                        file_name=f"comparison_{'_'.join(sorted(data_dict.keys()))}.csv",
+                        mime="text/csv"
+                    )
                 
                 st.success(
                     f"✅ Successfully compared **{len(data_dict)}** stocks!\n\n"
