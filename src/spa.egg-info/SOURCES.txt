@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/spa/__init__.py
+src/spa/cache.py
+src/spa/data_cleaner.py
+src/spa/data_fetcher.py
+src/spa/data_processor.py
+src/spa/exceptions.py
+src/spa/retry.py
+src/spa.egg-info/PKG-INFO
+src/spa.egg-info/SOURCES.txt
+src/spa.egg-info/dependency_links.txt
+src/spa.egg-info/top_level.txt
+tests/test_data_fetcher.py
+tests/test_data_processor.py
